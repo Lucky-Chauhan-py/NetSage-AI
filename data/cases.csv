@@ -1,0 +1,229 @@
+case_id,symptom,topology_note,show_output,expected_fault,osi_layer,concept_tag,severity,correct_answer
+CASE-001,PC cannot ping the default gateway,PC0 connected to Fa0/1 on Switch1 which connects to Router0 Gi0/0,"interface GigabitEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ shutdown
+!",Interface shutdown on router uplink,Layer 1,Interface Down,High,"Bring up the interface: no shutdown on Gi0/0"
+CASE-002,DHCP not assigning IP addresses to clients,DHCP server configured on Router0; clients on VLAN 10,"Router0# show ip dhcp pool
+Pool VLAN10 :
+ Utilization mark (high/low)  : 100 / 0
+ Subnet size (first/next)     : 0 / 0
+ Total addresses               : 0
+ Leased addresses              : 0
+ Excluded addresses            : 0
+ Pending event                 : none
+!
+Router0# show run | section dhcp
+no ip dhcp pool VLAN10",No DHCP pool configured,Layer 7,DHCP,High,"Configure DHCP pool: ip dhcp pool VLAN10; network 192.168.10.0 255.255.255.0; default-router 192.168.10.1"
+CASE-003,PC gets IP but cannot browse websites,PC0 has 192.168.1.10/24 GW 192.168.1.1; DNS should be 8.8.8.8,"PC0> ipconfig
+IPv4 Address........: 192.168.1.10
+Subnet Mask.........: 255.255.255.0
+Default Gateway.....: 192.168.1.1
+DNS Server..........: 0.0.0.0",DNS server not configured,Layer 7,DNS,Medium,"Set DNS server on DHCP pool: dns-server 8.8.8.8"
+CASE-004,HTTP traffic blocked between VLANs,ACL applied on Router0 inter-VLAN interface,"Router0# show access-lists
+Extended IP access list BLOCK_HTTP
+    10 deny tcp any any eq 80
+    20 permit ip any any
+!
+Router0# show run int Gi0/0.20
+interface GigabitEthernet0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+ ip access-group BLOCK_HTTP in",ACL blocking HTTP traffic on VLAN 20,Layer 4,ACL,High,"Remove or modify ACL: no access-list BLOCK_HTTP or change deny rule to permit eq 80"
+CASE-005,PC in VLAN 30 cannot reach PC in VLAN 10,Inter-VLAN routing via Router on a Stick,"Router0# show ip route
+C    192.168.10.0/24 is directly connected, GigabitEthernet0/0.10
+C    192.168.20.0/24 is directly connected, GigabitEthernet0/0.20
+!
+Switch1# show vlan brief
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2
+10   VLAN10                           active    Fa0/3
+20   VLAN20                           active    Fa0/4
+30   VLAN30                           active    Fa0/5",VLAN 30 not included in router subinterface,Layer 3,Inter-VLAN Routing,High,"Add subinterface: interface Gi0/0.30; encapsulation dot1Q 30; ip address 192.168.30.1 255.255.255.0"
+CASE-006,Hosts cannot reach internet; internal routing works,NAT overload configured on Router0,"Router0# show ip nat translations
+Pro Inside global      Inside local       Outside local      Outside global
+!
+Router0# show run | section nat
+ip nat inside source list 1 interface GigabitEthernet0/1 overload
+!
+Router0# show run | section access-list
+(no access-list 1 found)",NAT ACL missing; no traffic matched for translation,Layer 3,NAT,High,"Create ACL: access-list 1 permit 192.168.1.0 0.0.0.255; verify ip nat inside/outside on interfaces"
+CASE-007,Switch port not forwarding traffic; port LED orange,PC connected to Fa0/3 on Switch1,"Switch1# show port-security interface Fa0/3
+Port Security              : Enabled
+Port Status                : Secure-shutdown
+Violation Mode             : Shutdown
+Aging Time                 : 0 mins
+Aging Type                 : Absolute
+SecureStatic Address Aging : Disabled
+Maximum MAC Addresses      : 1
+Total MAC Addresses        : 1
+Configured MAC Addresses   : 0
+Sticky MAC Addresses       : 1
+Last Source Address:Vlan   : 00AA.BB11.2233:10
+Security Violation Count   : 1",Port security violation caused port shutdown,Layer 2,Switch Port Security,High,"Clear violation and re-enable: shutdown then no shutdown on Fa0/3; or increase max MAC addresses"
+CASE-008,Two PCs on same subnet cannot communicate intermittently,PC0 192.168.1.10 and PC2 both claim 192.168.1.10,"PC0> arp -a
+192.168.1.1     00:0A:41:AB:CD:EF  dynamic
+PC0> ping 192.168.1.1
+!!!!! (success)
+!
+PC2> ipconfig
+IPv4: 192.168.1.10
+Subnet: 255.255.255.0
+GW: 192.168.1.1",Duplicate IP address conflict,Layer 3,Duplicate IP,Medium,"Assign unique IPs. Change PC2 to 192.168.1.11 or use DHCP to prevent conflicts"
+CASE-009,PC can ping router but cannot ping remote network,Static route missing on Router0,"Router0# show ip route
+Codes: C - connected, S - static
+C    10.0.0.0/24 is directly connected, GigabitEthernet0/0
+C    10.0.1.0/24 is directly connected, GigabitEthernet0/1
+!
+(no S routes present)
+Router1 has 192.168.50.0/24",Missing static route to remote subnet,Layer 3,Static Routing,High,"Add static route: ip route 192.168.50.0 255.255.255.0 10.0.1.2"
+CASE-010,OSPF neighbors not forming; routers stuck in INIT state,"Router0 and Router1 connected via Se0/0/0, OSPF area 0","Router0# show ip ospf neighbor
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+(none)
+!
+Router0# show run | section ospf
+router ospf 1
+ network 10.0.0.0 0.0.0.255 area 0
+!
+Router1# show run | section ospf
+router ospf 1
+ network 10.0.0.0 0.0.0.255 area 1",OSPF area mismatch between routers,Layer 3,OSPF,High,"Change Router1 OSPF area to 0: network 10.0.0.0 0.0.0.255 area 0"
+CASE-011,Wireless client cannot associate to AP,Wireless AP using WPA2-PSK,"AP# show dot11 associations
+(empty)
+!
+Wireless client error: Authentication timeout
+!
+AP# show run | section dot11
+dot11 ssid CORP_WIFI
+   authentication open
+   authentication key-management wpa version 2
+   wpa-psk ascii WRONG_PASS",WPA2 passphrase mismatch between AP and client,Layer 2,Wireless,Medium,"Ensure client uses correct WPA2 passphrase. Verify with: show run | section dot11 ssid"
+CASE-012,Trunk link between switches not passing VLAN traffic,Trunk configured between Switch1 Fa0/24 and Switch2 Fa0/24,"Switch1# show interfaces trunk
+(empty - no trunk ports listed)
+!
+Switch1# show run int Fa0/24
+interface FastEthernet0/24
+ switchport mode access
+ switchport access vlan 1",Trunk port misconfigured as access port,Layer 2,Trunking,High,"Change to trunk: switchport mode trunk; remove access vlan config"
+CASE-013,VLANs not passing over trunk; only VLAN 1 works,Trunk between Switch1 and Switch2,"Switch1# show interfaces Fa0/24 trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/24      on           802.1q         trunking      1
+Port        Vlans allowed on trunk
+Fa0/24      1
+Port        Vlans allowed and active in management domain
+Fa0/24      1",Trunk configured but VLANs not allowed,Layer 2,Trunking,Medium,"Allow VLANs: switchport trunk allowed vlan 10,20,30 (or all)"
+CASE-014,PC cannot reach gateway; wrong subnet mask,"PC0 configured manually with /16 mask, subnet is /24","PC0> ipconfig
+IPv4: 192.168.1.100
+Subnet: 255.255.0.0
+GW: 192.168.1.1
+!
+PC0> ping 192.168.1.1
+Request timed out.",Wrong subnet mask prevents proper routing,Layer 3,Subnet Mask,Medium,"Correct subnet mask to 255.255.255.0 (/24) on PC0"
+CASE-015,PCs cannot reach internet; default gateway missing on router,"ISP connected on Gi0/1; internal on Gi0/0","Router0# show ip route
+C    192.168.1.0/24 is directly connected, GigabitEthernet0/0
+C    203.0.113.0/30 is directly connected, GigabitEthernet0/1
+!
+(no default route)",Missing default route to ISP,Layer 3,Default Gateway,High,"Add default route: ip route 0.0.0.0 0.0.0.0 203.0.113.2"
+CASE-016,PC assigned correct IP but cannot reach any host,Wrong default gateway configured on PC,PC0> ping 192.168.1.1 (gateway): Request timed out. PC0 configured with GW 192.168.2.1 but correct GW is 192.168.1.1,Gateway mismatch on PC configuration,Layer 3,Gateway mismatch,Medium,"Correct gateway on PC to 192.168.1.1. Use ipconfig /release and /renew if DHCP or change manually"
+CASE-017,New VLAN added but devices cannot communicate,VLAN 40 created but not added to trunk,"Switch1# show vlan brief
+VLAN Name      Status    Ports
+1    default   active
+10   Sales      active    Fa0/1
+20   HR         active    Fa0/2
+40   IT         active    Fa0/5
+!
+Switch1# show int trunk
+Fa0/24  trunking  1-39",VLAN 40 not allowed on trunk link,Layer 2,VLAN,High,"Add VLAN 40 to trunk: switchport trunk allowed vlan add 40"
+CASE-018,DHCP assigns IP but client still shows APIPA 169.x,"DHCP server on separate VLAN, no ip helper configured","Router0# show run int Gi0/0
+interface GigabitEthernet0/0
+ ip address 192.168.10.1 255.255.255.0
+(no ip helper-address configured)
+!
+DHCP server at 10.0.0.100",Missing ip helper-address for DHCP relay,Layer 3,DHCP,High,"Add helper: interface Gi0/0; ip helper-address 10.0.0.100"
+CASE-019,OSPF routes appear but traffic not forwarding,"OSPF running, routes in table, but ICMP fails","Router0# show ip ospf
+Routing Process ospf 1 with ID 1.1.1.1
+!
+Router0# show ip route ospf
+O    10.10.20.0/24 [110/2] via 10.10.10.2
+!
+Router0# show ip interface brief
+GigabitEthernet0/1   10.10.10.1   YES   manual   administratively down   down",Physical interface for OSPF path is down,Layer 1,OSPF,High,"Bring up interface: no shutdown on Gi0/1"
+CASE-020,ACL blocking all traffic including permitted hosts,ACL applied in wrong direction,"Router0# show access-lists
+Extended IP access list PERMIT_MGMT
+    10 permit ip host 10.0.0.5 any
+    20 deny ip any any
+!
+Router0# show run int Gi0/0
+ ip access-group PERMIT_MGMT out",ACL applied outbound instead of inbound; blocking return traffic,Layer 4,ACL,High,"Move ACL to inbound: ip access-group PERMIT_MGMT in (remove out)"
+CASE-021,Switch port blocking; STP not converging,Topology has redundant links without portfast,"Switch1# show spanning-tree
+VLAN0001
+ Root ID    Priority    32769
+ Root bridge: this switch
+ Port: Fa0/2 - Blocking
+!
+Interface Fa0/2 not portfast",STP blocking port connected to end device,Layer 2,Switch Port Security,Low,"Enable portfast on access port: spanning-tree portfast on Fa0/2"
+CASE-022,VLAN not in database on switch,VLAN created only in running config not saved,"Switch1# show vlan brief
+VLAN Name      Status
+1    default   active
+10   Sales      active
+(VLAN 30 missing)
+!
+Devices in VLAN 30 cannot communicate",VLAN 30 missing from VLAN database,Layer 2,VLAN,High,"Create VLAN: vlan 30; name Engineering then assign ports"
+CASE-023,Inter-VLAN routing fails; router subinterface misconfigured,Router on stick with wrong encapsulation VLAN ID,"Router0# show run int Gi0/0.10
+interface GigabitEthernet0/0.10
+ encapsulation dot1Q 20
+ ip address 192.168.10.1 255.255.255.0",Wrong VLAN ID in encapsulation command,Layer 3,Inter-VLAN Routing,High,"Fix encapsulation: encapsulation dot1Q 10 (match actual VLAN number)"
+CASE-024,NAT translations not showing even with correct pool,NAT inside/outside not set on interfaces,"Router0# show ip nat translations
+(empty)
+!
+Router0# show run | section nat
+ip nat inside source list 10 pool INTERNET overload
+ip nat pool INTERNET 203.0.113.5 203.0.113.10 netmask 255.255.255.248
+!
+Router0# show run int Gi0/0
+interface GigabitEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+(no ip nat inside)
+!
+Router0# show run int Gi0/1
+interface GigabitEthernet0/1
+ ip address 203.0.113.1 255.255.255.252
+(no ip nat outside)",NAT inside/outside not configured on interfaces,Layer 3,NAT,High,"Add: ip nat inside on Gi0/0 and ip nat outside on Gi0/1"
+CASE-025,Access port assigned to wrong VLAN; PC in wrong broadcast domain,"PC should be in VLAN 20 but is in VLAN 10","Switch1# show run int Fa0/5
+interface FastEthernet0/5
+ switchport mode access
+ switchport access vlan 10",Port assigned to wrong VLAN,Layer 2,Incorrect VLAN Assignment,Medium,"Change VLAN: switchport access vlan 20 on Fa0/5"
+CASE-026,SSH access denied on router despite credentials correct,VTY lines not configured for SSH,"Router0# show run | section line vty
+line vty 0 4
+ transport input telnet
+!
+Router0# show ip ssh
+SSH Disabled",Transport input telnet only; SSH disabled,Layer 7,ACL,Medium,"Enable SSH: crypto key generate rsa; ip ssh version 2; line vty 0 4; transport input ssh"
+CASE-027,DHCP pool exhausted; clients getting no IP,DHCP pool too small for number of hosts,"Router0# show ip dhcp pool
+Pool LAN :
+ Total addresses : 10
+ Leased addresses : 10
+ Available addresses: 0",DHCP pool exhausted; all addresses leased,Layer 7,DHCP,High,"Expand pool or use larger subnet. Reduce lease time or reclaim unused leases: clear ip dhcp binding *"
+CASE-028,Routing between two routers fails despite static routes,"Two routers R0 and R1 with serial link","R0# show ip route
+S    10.10.20.0/24 [1/0] via 10.0.0.2
+!
+R0# ping 10.0.0.2
+..... (fail)
+!
+R0# show interfaces Se0/0/0
+Serial0/0/0 is up, line protocol is down",Serial link up but line protocol down; clock rate missing,Layer 1,Static Routing,High,"Set clock rate on DCE side: clock rate 64000 on Se0/0/0"
+CASE-029,DNS resolution failing; ping by IP works but not by name,"DNS server configured at 8.8.8.8","PC0> ping 8.8.8.8
+!!!!!
+PC0> ping www.cisco.com
+Unknown host www.cisco.com
+!
+PC0> ipconfig
+DNS: 192.168.1.53 (unreachable DNS server)",DNS server unreachable or wrong DNS IP configured,Layer 7,DNS,Medium,"Correct DNS server IP. If local DNS: verify DNS service running. Use: ip name-server 8.8.8.8 on router"
+CASE-030,Wireless client connected but no internet; wired clients fine,"Wireless PC on 192.168.50.0/24; default route missing for wireless VLAN","AP# show dot11 associations
+MAC Address    IP Address   Device
+00AA.BBCC.DD01 192.168.50.101 Unknown
+!
+Router0# show ip route
+C   192.168.1.0/24 directly connected Gi0/0
+C   203.0.113.0/30 directly connected Gi0/1
+(no route for 192.168.50.0/24)",No routing configured for wireless subnet,Layer 3,Wireless,Medium,"Add subinterface or route for wireless VLAN 50: interface Gi0/0.50; encapsulation dot1Q 50; ip address 192.168.50.1 255.255.255.0"
