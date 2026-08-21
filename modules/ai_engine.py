@@ -43,7 +43,7 @@ from modules import logger as app_logger
 # Configuration
 # ---------------------------------------------------------------------------
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 MAX_RETRIES = 3
 RETRY_DELAY_SECONDS = 2.0
 
