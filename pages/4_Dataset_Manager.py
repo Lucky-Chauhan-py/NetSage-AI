@@ -41,39 +41,59 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.markdown(
-        """
-        <div style="padding:10px 4px 16px; text-align:center;">
-            <div style="font-size:2.2rem; margin-bottom:4px;">🌐</div>
-            <div style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; background:linear-gradient(135deg, #38BDF8, #818CF8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-                NetSage AI
-            </div>
-            <div style="font-size:0.75rem; color:#6B7280; font-weight:500; margin-top:2px;">
-                Dataset Operations Portal
-            </div>
+    from modules.ai_engine import is_api_key_configured
+    api_ok = is_api_key_configured()
+    st.markdown("""
+<div style="padding:20px 8px 16px; border-bottom:1px solid rgba(255,255,255,0.07); margin-bottom:16px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:36px; height:36px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg, #3B82F6 0%, #10B981 100%); display:flex; align-items:center; justify-content:center; font-size:1.1rem; box-shadow:0 4px 12px rgba(59,130,246,0.4);">🛰️</div>
+        <div>
+            <div style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:#F1F5F9; letter-spacing:-0.02em;">NetSage AI</div>
+            <div style="font-size:0.68rem; color:#475569; font-weight:500; letter-spacing:0.04em; text-transform:uppercase;">Enterprise v2.5</div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-    st.page_link("app.py", label="🏠 Command Center", use_container_width=True)
-    st.page_link("pages/1_AI_Diagnosis.py", label="🔍 AI Diagnosis", use_container_width=True)
-    st.page_link("pages/2_Human_Review.py", label="👤 Human Review Board", use_container_width=True)
-    st.page_link("pages/3_Dashboard.py", label="📊 Analytics & Metrics", use_container_width=True)
-    st.page_link("pages/4_Dataset_Manager.py", label="📁 Dataset Operations", use_container_width=True)
-    st.page_link("pages/5_About.py", label="ℹ️ Architecture & Specs", use_container_width=True)
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+    if api_ok:
+        st.markdown("""
+<div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:10px 14px; margin-bottom:18px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-dot status-online"></span>
+        <span style="font-size:0.82rem; font-weight:600; color:#34D399;">Gemini AI Online</span>
+    </div>
+    <div style="font-size:0.72rem; color:#475569; margin-top:3px; padding-left:16px;">gemini-3.6-flash • Connected</div>
+</div>
+""", unsafe_allow_html=True)
+    else:
+        st.markdown("""
+<div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:10px 14px; margin-bottom:18px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-dot status-warning"></span>
+        <span style="font-size:0.82rem; font-weight:600; color:#FCD34D;">Offline Mode</span>
+    </div>
+    <div style="font-size:0.72rem; color:#475569; margin-top:3px; padding-left:16px;">Rule Engine Active • No API Key</div>
+</div>
+""", unsafe_allow_html=True)
+
+    st.markdown('<div style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:#334155; margin-bottom:6px;">Navigation</div>', unsafe_allow_html=True)
+    st.page_link("app.py",                       label="⌂  Command Center",       use_container_width=True)
+    st.page_link("pages/1_AI_Diagnosis.py",       label="◎  AI Diagnosis",         use_container_width=True)
+    st.page_link("pages/2_Human_Review.py",       label="◈  Human Review Board",   use_container_width=True)
+    st.page_link("pages/3_Dashboard.py",          label="▦  Analytics Dashboard",  use_container_width=True)
+    st.page_link("pages/4_Dataset_Manager.py",    label="⊞  Dataset Manager",      use_container_width=True)
+    st.page_link("pages/5_About.py",              label="◉  Architecture & Docs",  use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Page header
 # ---------------------------------------------------------------------------
-st.markdown(
-    '<h1 style="color:#58A6FF;font-weight:800;font-size:2.2rem">📁 Dataset Manager</h1>',
-    unsafe_allow_html=True,
-)
-st.markdown(
-    '<p style="color:#8B949E;margin-bottom:1.5rem">Manage the cases dataset: view, search, add, edit, delete, upload, download, and validate.</p>',
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div class="fade-up" style="padding:32px 0 20px;">
+    <div class="hero-eyebrow">⊞ Dataset Manager</div>
+    <div class="hero-title">Dataset <span>Operations</span> Portal</div>
+    <div class="hero-desc">Manage the cases dataset: view, search, add, edit, delete, upload, download, and validate.</div>
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Tabs

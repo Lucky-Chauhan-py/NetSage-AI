@@ -38,56 +38,48 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # Sidebar nav & status
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown(
-        """
-        <div style="padding:10px 4px 16px; text-align:center;">
-            <div style="font-size:2.2rem; margin-bottom:4px;">🌐</div>
-            <div style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; background:linear-gradient(135deg, #38BDF8, #818CF8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-                NetSage AI
-            </div>
-            <div style="font-size:0.75rem; color:#6B7280; font-weight:500; margin-top:2px;">
-                Diagnostic Operations Console
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    from modules.ai_engine import is_api_key_configured
     api_ok = is_api_key_configured()
-    if api_ok:
-        st.markdown(
-            """
-            <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:10px 14px; margin-bottom:18px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="pulse-dot"></div>
-                    <span style="font-size:0.8rem; font-weight:700; color:#34D399;">Cloud AI Engine Online</span>
-                </div>
-                <div style="font-size:0.72rem; color:#9CA3AF; margin-top:4px;">Gemini 1.5 Flash • Active</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            """
-            <div style="background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); border-radius:12px; padding:10px 14px; margin-bottom:18px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="pulse-dot-cyan"></div>
-                    <span style="font-size:0.8rem; font-weight:700; color:#38BDF8;">Autonomous Local Engine</span>
-                </div>
-                <div style="font-size:0.72rem; color:#9CA3AF; margin-top:4px;">14-Rule Matrix + Embedded Diagnostic AI</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    st.markdown("""
+<div style="padding:20px 8px 16px; border-bottom:1px solid rgba(255,255,255,0.07); margin-bottom:16px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:36px; height:36px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg, #3B82F6 0%, #10B981 100%); display:flex; align-items:center; justify-content:center; font-size:1.1rem; box-shadow:0 4px 12px rgba(59,130,246,0.4);">🛰️</div>
+        <div>
+            <div style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:#F1F5F9; letter-spacing:-0.02em;">NetSage AI</div>
+            <div style="font-size:0.68rem; color:#475569; font-weight:500; letter-spacing:0.04em; text-transform:uppercase;">Enterprise v2.5</div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.page_link("app.py", label="🏠 Command Center", use_container_width=True)
-    st.page_link("pages/1_AI_Diagnosis.py", label="🔍 AI Diagnosis", use_container_width=True)
-    st.page_link("pages/2_Human_Review.py", label="👤 Human Review Board", use_container_width=True)
-    st.page_link("pages/3_Dashboard.py", label="📊 Analytics & Metrics", use_container_width=True)
-    st.page_link("pages/4_Dataset_Manager.py", label="📁 Dataset Operations", use_container_width=True)
-    st.page_link("pages/5_About.py", label="ℹ️ Architecture & Specs", use_container_width=True)
+    if api_ok:
+        st.markdown("""
+<div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:10px 14px; margin-bottom:18px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-dot status-online"></span>
+        <span style="font-size:0.82rem; font-weight:600; color:#34D399;">Gemini AI Online</span>
+    </div>
+    <div style="font-size:0.72rem; color:#475569; margin-top:3px; padding-left:16px;">gemini-3.6-flash • Connected</div>
+</div>
+""", unsafe_allow_html=True)
+    else:
+        st.markdown("""
+<div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:10px 14px; margin-bottom:18px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-dot status-warning"></span>
+        <span style="font-size:0.82rem; font-weight:600; color:#FCD34D;">Offline Mode</span>
+    </div>
+    <div style="font-size:0.72rem; color:#475569; margin-top:3px; padding-left:16px;">Rule Engine Active • No API Key</div>
+</div>
+""", unsafe_allow_html=True)
+
+    st.markdown('<div style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:#334155; margin-bottom:6px;">Navigation</div>', unsafe_allow_html=True)
+    st.page_link("app.py",                       label="⌂  Command Center",       use_container_width=True)
+    st.page_link("pages/1_AI_Diagnosis.py",       label="◎  AI Diagnosis",         use_container_width=True)
+    st.page_link("pages/2_Human_Review.py",       label="◈  Human Review Board",   use_container_width=True)
+    st.page_link("pages/3_Dashboard.py",          label="▦  Analytics Dashboard",  use_container_width=True)
+    st.page_link("pages/4_Dataset_Manager.py",    label="⊞  Dataset Manager",      use_container_width=True)
+    st.page_link("pages/5_About.py",              label="◉  Architecture & Docs",  use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Session state
@@ -102,23 +94,13 @@ if "pending_review" not in st.session_state:
 # ---------------------------------------------------------------------------
 # Page header
 # ---------------------------------------------------------------------------
-st.markdown(
-    """
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:20px;">
-        <div>
-            <h1 style="color:#F9FAFB; font-weight:800; font-size:2.2rem; margin-bottom:4px;">🔍 Incident Diagnostic Operations</h1>
-            <p style="color:#9CA3AF; margin:0; font-size:0.95rem;">
-                Execute dual-stage analysis: 14-Rule Deterministic Evaluation + Gemini Neural OSI Synthesis.
-            </p>
-        </div>
-        <div>
-            <span class="badge badge-blue">⚡ Autonomous Mode</span>
-            <span class="badge badge-green">🛡️ Human Review Guardrail Active</span>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div class="fade-up" style="padding:32px 0 20px;">
+    <div class="hero-eyebrow">◎ AI Diagnosis Console</div>
+    <div class="hero-title">Autonomous <span>Diagnosis</span> Engine</div>
+    <div class="hero-desc">Execute dual-stage analysis: 14-Rule Deterministic Evaluation + Gemini Neural OSI Synthesis.</div>
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Quick Case Preset Picker
